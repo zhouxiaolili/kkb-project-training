@@ -15,10 +15,14 @@ class UserController extends BaseController {
 
   async login() {
     const { ctx, app } = this;
-    const { email, captcha, password } = ctx.request.body;
+    const { email, captcha, password, emailcode } = ctx.request.body;
     // 校验验证码
     if (captcha.toUpperCase() !== ctx.session.captcha.toUpperCase()) {
       this.error('验证码错误');
+    }
+    // 校验邮箱验证码
+    if (emailcode !== ctx.session.emailcode) {
+      return this.error('邮箱验证码错误');
     }
     // 校验用户名和密码
     const user = await ctx.model.User.findOne({
@@ -65,11 +69,17 @@ class UserController extends BaseController {
     const user = await this.ctx.model.User.findOne({ email });
     return user;
   }
+  // eslint-disable-next-line no-empty-function
   async verify() {
 
   }
   async info() {
-
+    const { ctx } = this;
+    // 有的接口需要从token中获取数据，因为很多接口需要用到，所以弄个中间件
+    const { email } = ctx.state;
+    const user = await this.checkEmail(email);
+    console.log('user', user);
+    this.succse(user);
   }
 }
 module.exports = UserController;
